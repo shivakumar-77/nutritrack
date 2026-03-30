@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+export const dynamic = 'force-dynamic'
 type Mode = 'landing'|'email'|'phone'|'otp'|'confirm'
 export default function AuthPage() {
   const router = useRouter()
