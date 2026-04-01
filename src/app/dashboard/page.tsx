@@ -6,6 +6,7 @@ import BottomNav from '@/components/BottomNav'
 import MacroRing from '@/components/MacroRing'
 import FoodLogItem from '@/components/FoodLogItem'
 import WaterTracker from '@/components/WaterTracker'
+export const dynamic = 'force-dynamic'
 const today = () => new Date().toISOString().slice(0,10)
 const fmt = (n:number) => Math.round(n)
 export default function Dashboard() {

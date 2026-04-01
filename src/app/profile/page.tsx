@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, type Profile, type WeightLog } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
+export const dynamic = 'force-dynamic'
 export default function ProfilePage() {
   const router = useRouter()
   const [profile,setProfile] = useState<Profile|null>(null)
