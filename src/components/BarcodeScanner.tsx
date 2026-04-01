@@ -10,11 +10,11 @@ export default function BarcodeScanner({ onResult }: Props) {
   const [error, setError] = useState('')
   const [hint, setHint] = useState('')
   const videoRef = useRef<HTMLVideoElement>(null)
-  const readerRef = useRef<any>(null)
   const streamRef = useRef<MediaStream|null>(null)
+  const scanningRef = useRef(false)
 
   async function startScan() {
-    setError(''); setHint('Starting camera…')
+    setError(''); setHint('Starting camera...')
     setMode('scanning')
     await new Promise(r => setTimeout(r, 400))
     try {
@@ -26,31 +26,33 @@ export default function BarcodeScanner({ onResult }: Props) {
         videoRef.current.srcObject = stream
         await videoRef.current.play()
       }
-      setHint('Align barcode in the green frame…')
-      const { BrowserMultiFormatReader } = await import('@zxing/browser')
-      const reader = new BrowserMultiFormatReader()
-      readerRef.current = reader
-      scanLoop(reader)
-    } catch (e: any) {
-      setError('Camera not available. Use manual entry below.')
+      setHint('Align barcode in the green frame...')
+      scanningRef.current = true
+      runScan()
+    } catch {
+      setError('Camera not available. Use manual entry.')
       setMode('manual')
     }
   }
 
-  async function scanLoop(reader: any) {
-    if (!videoRef.current) return
+  async function runScan() {
+    if (!scanningRef.current || !videoRef.current) return
     try {
+      const { BrowserMultiFormatReader } = await import('@zxing/browser')
+      const reader = new BrowserMultiFormatReader()
       const result = await reader.decodeOnceFromVideoElement(videoRef.current)
       if (result?.getText()) {
-        setHint('Barcode detected!')
+        setHint('Barcode found!')
+        scanningRef.current = false
         await lookup(result.getText())
       }
     } catch {
-      if (streamRef.current) setTimeout(() => scanLoop(reader), 300)
+      if (scanningRef.current) setTimeout(runScan, 500)
     }
   }
 
   function stopScan() {
+    scanningRef.current = false
     streamRef.current?.getTracks().forEach(t => t.stop())
     streamRef.current = null
     setMode('idle'); setHint('')
@@ -62,7 +64,7 @@ export default function BarcodeScanner({ onResult }: Props) {
       const res = await fetch(`/api/barcode?code=${encodeURIComponent(code.trim())}`)
       const data = await res.json()
       if (data.result) { stopScan(); onResult(data.result) }
-      else { setError(`"${code}" not found. Try manual entry.`); setMode('idle') }
+      else { setError('Product not found. Try manual entry.'); setMode('idle') }
     } catch { setError('Lookup failed.') }
     finally { setLoading(false) }
   }
@@ -105,7 +107,7 @@ export default function BarcodeScanner({ onResult }: Props) {
             <div className="sc bl"/><div className="sc br"/>
           </div>
           <p style={{textAlign:'center',color:loading?'var(--green)':'var(--muted)',fontSize:13,marginBottom:12}}>
-            {loading?'Looking up product…':hint}
+            {loading?'Looking up product...':hint}
           </p>
           {error&&<div style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.3)',borderRadius:12,padding:'10px 14px',marginBottom:12}}><p style={{color:'var(--red)',fontSize:13}}>{error}</p></div>}
           <button className="btn btn-ghost" style={{width:'100%',marginBottom:12}} onClick={stopScan}>Cancel</button>
@@ -117,7 +119,7 @@ export default function BarcodeScanner({ onResult }: Props) {
                 onKeyDown={e=>e.key==='Enter'&&manualCode&&lookup(manualCode)} style={{flex:1}}/>
               <button className="btn btn-primary" onClick={()=>manualCode&&lookup(manualCode)}
                 disabled={loading||!manualCode} style={{flexShrink:0,padding:'12px 16px'}}>
-                {loading?'…':'Go'}
+                {loading?'...':'Go'}
               </button>
             </div>
           </div>
@@ -136,10 +138,10 @@ export default function BarcodeScanner({ onResult }: Props) {
               style={{flex:1}} autoFocus/>
             <button className="btn btn-primary" onClick={()=>manualCode&&lookup(manualCode)}
               disabled={loading||!manualCode} style={{flexShrink:0,padding:'12px 18px'}}>
-              {loading?'…':'Search'}
+              {loading?'...':'Search'}
             </button>
           </div>
-          {loading&&<p style={{textAlign:'center',color:'var(--muted)',fontSize:13}}>Looking up product…</p>}
+          {loading&&<p style={{textAlign:'center',color:'var(--muted)',fontSize:13}}>Looking up product...</p>}
           {error&&<div style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.3)',borderRadius:12,padding:'10px 14px'}}><p style={{color:'var(--red)',fontSize:13}}>{error}</p></div>}
         </div>
       )}
