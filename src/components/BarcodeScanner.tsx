@@ -61,7 +61,7 @@ export default function BarcodeScanner({ onResult }: Props) {
   async function lookup(code: string) {
     setLoading(true); setError('')
     try {
-      const res = await fetch(`/api/barcode?code=${encodeURIComponent(code.trim())}`)
+      const res = await fetch('/api/barcode?code=' + encodeURIComponent(code.trim()))
       const data = await res.json()
       if (data.result) { stopScan(); onResult(data.result) }
       else { setError('Product not found. Try manual entry.'); setMode('idle') }
@@ -128,7 +128,7 @@ export default function BarcodeScanner({ onResult }: Props) {
 
       {mode==='manual' && (
         <div>
-          <button onClick={()=>setMode('idle')} style={{background:'none',border:'none',color:'var(--muted)',cursor:'pointer',fontSize:13,marginBottom:20,padding:0}}>← Back</button>
+          <button onClick={()=>setMode('idle')} style={{background:'none',border:'none',color:'var(--muted)',cursor:'pointer',fontSize:13,marginBottom:20,padding:0}}>Back</button>
           <h3 style={{fontSize:16,fontWeight:500,marginBottom:6}}>Enter barcode number</h3>
           <p style={{fontSize:13,color:'var(--muted)',marginBottom:16}}>Find the number printed below the barcode lines</p>
           <div style={{display:'flex',gap:8,marginBottom:12}}>
@@ -141,7 +141,7 @@ export default function BarcodeScanner({ onResult }: Props) {
               {loading?'...':'Search'}
             </button>
           </div>
-          {loading&&<p style={{textAlign:'center',color:'var(--muted)',fontSize:13}}>Looking up product...</p>}
+          {loading&&<p style={{textAlign:'center',color:'var(--muted)',fontSize:13}}>Looking up...</p>}
           {error&&<div style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.3)',borderRadius:12,padding:'10px 14px'}}><p style={{color:'var(--red)',fontSize:13}}>{error}</p></div>}
         </div>
       )}
